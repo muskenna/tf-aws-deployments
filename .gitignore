@@ -33,3 +33,4 @@ override.tf.json
 utilities/__pycache__/*
 *.terragrunt-cache*
 *.terraform.lock.hcl*
+deployments.json
