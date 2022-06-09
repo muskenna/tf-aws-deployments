@@ -1,0 +1,33 @@
+{
+    "deployments": {
+        "production": {
+            "regions": {
+                "ca-central-1": {
+                    "account_id": "021450945668",
+                    "environment": "production",
+                    "prefix": "prd",
+                    "vpc_cidr_block": "172.16.0.0",
+                    "notes": [
+                        "CIDR Block to be divided by four subnets",
+                        "Subnets: private-primary,private-secondary, public-primary, public-secondary"
+                    ]
+                }
+            }
+        },
+        "development": {
+            "regions": {
+                "ca-central-1": {
+                    "account_id": "780624228231",
+                    "environment": "development",
+                    "prefix": "dev",
+                    "vpc_cidr_block": "10.0.0.0/22",
+                    "notes": [
+                        "CIDR Block to be divided by four subnets",
+                        "Subnets: private-primary,private-secondary, public-primary, public-secondary"
+                    ]
+                }
+            }
+        }
+    },
+    "git_source":"git::ssh://git@muskenna/muskenna"
+}
