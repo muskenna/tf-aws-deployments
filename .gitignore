@@ -34,3 +34,6 @@ utilities/__pycache__/*
 *.terragrunt-cache*
 *.terraform.lock.hcl*
 deployments.json
+
+#Local library for testing
+library/*
