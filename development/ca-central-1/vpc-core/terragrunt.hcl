@@ -11,7 +11,7 @@ locals {
 }
 
 terraform {
-  source =  "${local.git_source}/tf-aws-library.git//vpc-core"
+  source =  "${local.git_source}//vpc-core"
 }
 
 inputs = {
