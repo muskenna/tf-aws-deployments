@@ -29,5 +29,6 @@
             }
         }
     },
-    "git_source":"git::ssh://git@github.com/username/tf-aws-library.git"
+    "git_source":"git::ssh://git@github.com/username/tf-aws-library.git",
+    "local_dev_env": true
 }

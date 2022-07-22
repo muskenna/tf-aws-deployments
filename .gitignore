@@ -1,6 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# TF debug files
+terragrunt-debug.tfvars.json
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -36,4 +39,4 @@ utilities/__pycache__/*
 deployments.json
 
 #Local library for testing
-library/*
+tf-aws-library/*

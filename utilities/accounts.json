@@ -1,0 +1,30 @@
+{
+  "deployment": {
+      "__notes__": "The terraform tasks will be executed from this account",
+      "accountAlias": "Core Service",
+      "accountNumber": "xxxxxxxxxxxx",
+      "localAWSProfileName": "core-service"
+  },
+  "targets": [
+      {
+          "accountAlias": "Central Log Archive",
+          "accountNumber": "yyyyyyyyyyy",
+          "localAWSProfileName": "clogarchive"
+      },
+      {
+          "accountAlias": "Development",
+          "accountNumber": "zzzzzzzzzzz",
+          "localAWSProfileName": "poc-development"
+      },
+      {
+          "accountAlias": "Production",
+          "accountNumber": "kkkkkkkkkkkk",
+          "localAWSProfileName": "production"
+      },
+      {
+          "accountAlias": "NetworkHub",
+          "accountNumber": "vvvvvvvvvvvv",
+          "localAWSProfileName": "networking"
+      }
+  ]
+}

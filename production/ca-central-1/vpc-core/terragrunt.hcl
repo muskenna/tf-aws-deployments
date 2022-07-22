@@ -3,16 +3,17 @@ include {
 }
 
 locals {
+  module_name = "vpc-core"
   region          = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-2])")
   deployment_name = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-3])")
   all_deployments = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))
   git_source      = local.all_deployments["git_source"]
+  local_dev_env   = local.all_deployments["local_dev_env"]
   deployment      = local.all_deployments["deployments"][local.deployment_name]["regions"][local.region]
 }
 
 terraform {
-  source =  "${local.git_source}//vpc-core"
-  #source = format("%s/library//vpc-core", "${get_parent_terragrunt_dir()}")
+  source =  local.local_dev_env == "true" ? format("%s/tf-aws-library//${local.module_name}", "${get_parent_terragrunt_dir()}") : "${local.git_source}//${local.module_name}"
 }
 
 inputs = {

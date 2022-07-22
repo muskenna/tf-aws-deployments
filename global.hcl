@@ -1,8 +1,8 @@
 locals {
   authorized_account               = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
-  aws_local_profile                = "MyDeploymentService"
-  tf_state_bucket                  = "terraform-deployment-state-files-123456789"
-  tf_state_region                  = "ca-central-1"
+  aws_local_profile                = "DeploymentService"
+  tf_state_bucket                  = "terraform-deployment-state-files-097410909212"
+  tf_state_region                  = "us-east-1"
   deployment_service_iam_role_name = "MyDeploymentService"
 
   domain_names = {
