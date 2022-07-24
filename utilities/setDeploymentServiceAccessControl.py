@@ -2,6 +2,10 @@ import logging
 import boto3
 import json
 import os 
+import sys
+from configparser import ConfigParser
+
+deploymentServiceRoleName = 'MyDeploymentService'
 
 def setAccessControl(session, trustEntityPrincipal):
     
@@ -56,9 +60,65 @@ def setAccessControl(session, trustEntityPrincipal):
     except Exception as error:
         raise error
 
-folder = os.path.dirname(os.path.realpath(__file__))
-configFile = os.path.join(folder, 'accounts.json')
-deploymentServiceRoleName = 'MyDeploymentService'
+def getAWSCredeFilePath():
+    awsCredFile = ''
+    userHomeFolder = os.path.expanduser('~')
+    if os.name == 'nt':
+        awsCredFile = os.path.join(userHomeFolder, '.aws\credentials')
+    else:
+        awsCredFile = os.path.join(userHomeFolder, '.aws/credentials')
+
+    if not os.path.exists(awsCredFile):
+        awsCredFile = ''
+    
+    return awsCredFile, awsCredFile.replace('credentials', 'config')
+
+def getAccountsFilePath():
+    folder = os.path.dirname(os.path.realpath(__file__))
+    accountsFile = os.path.join(folder, 'accounts.json')
+    if not os.path.exists(accountsFile):
+        accountsFile = ''
+    
+    return accountsFile
+
+def checkRequirements():
+    awsCredFile = getAWSCredeFilePath()
+    if not awsCredFile:
+        print(f'The AWS credentials file {awsCredFile} was not found. Please, install the AWS CLI')
+        sys.exit(0)
+    accountsFile = getAccountsFilePath()
+    if not accountsFile:
+        print(f'The accounts file {accountsFile} was not found. Please, create it based on the template accounts.template.json')
+        sys.exit(0)
+    
+def createDeploymentServerAWSProfile(deploymentServiceAccountName, accessKey, secretKey, localAWSConfigProfileName, deploymentServiceAccountNumber, roleArn):
+    '''
+    https://docs.python.org/3.5/library/sys.html#sys.platform
+    '''
+    awsCredFile, awsConfFile = getAWSCredeFilePath()
+    parser = ConfigParser()
+    parser.read(awsCredFile)
+    section = [sectionName for sectionName in parser.sections() if sectionName == deploymentServiceAccountName]
+    if not section:
+        parser.add_section(deploymentServiceAccountName)
+    parser.set(deploymentServiceAccountName, 'aws_access_key_id', accessKey)
+    parser.set(deploymentServiceAccountName, 'aws_secret_access_key', secretKey)
+    with open(awsCredFile, 'w') as file:    # save
+        parser.write(file)
+
+    configProfileName = f"profile {localAWSConfigProfileName}"
+    parser = ConfigParser()
+    parser.read(awsConfFile)
+    section = [sectionName for sectionName in parser.sections() if sectionName == configProfileName]
+    if not section:
+        parser.add_section(configProfileName)
+    parser.set(configProfileName, 'role_arn', roleArn)
+    parser.set(configProfileName, 'source_profile', deploymentServiceAccountName)
+    with open(awsConfFile, 'w') as file:    # save
+        parser.write(file)    
+
+checkRequirements()
+configFile = getAccountsFilePath()
 
 try:
     with open(configFile, 'r') as reader:
@@ -68,10 +128,10 @@ except IOError:
 except json.JSONDecodeError:
     raise json.JSONDecodeError('Invalid Json file')
 
-if 'deployment' not in accounts and 'targets' not in accounts:
+if 'deploymentService' not in accounts and 'targets' not in accounts:
     raise ValueError('Invalid configuration file (json schema)')
 
-deploymentServiceConfigProperties = list((accounts['deployment']).keys())
+deploymentServiceConfigProperties = list((accounts['deploymentService']).keys())
 if not ('accountAlias' in deploymentServiceConfigProperties and 'accountNumber' in deploymentServiceConfigProperties and 'localAWSProfileName' in deploymentServiceConfigProperties):
     raise ValueError('Invalid configuration file (json schema)')
 
@@ -79,11 +139,24 @@ if not ('accountAlias' in deploymentServiceConfigProperties and 'accountNumber' 
 ###### Deployment Service Access Control Configuration ######
 #############################################################
 
-deploymentAccountConfig = accounts['deployment']
-deploymentServiceTrustEntityPrincipal = f"arn:aws:iam::{deploymentAccountConfig['accountNumber']}:root"
-
+deploymentAccountConfig = accounts['deploymentService']
+deploymentServiceAccountName = accounts['deploymentService']['deploymentServiceAccountName']
+localAWSConfigProfileName = accounts['deploymentService']['localAWSConfigProfileName']
+deploymentServiceAccountNumber = deploymentAccountConfig['accountNumber']
+#deploymentServiceTrustEntityPrincipal = f"arn:aws:iam::{deploymentServiceAccountNumber}:root"
+deploymentServiceTrustEntityPrincipalSelf = f'arn:aws:iam::{deploymentServiceAccountNumber}:user/{deploymentServiceAccountName}'
+deploymentServiceTrustEntityPrincipal = f'arn:aws:iam::{deploymentServiceAccountNumber}:role/{localAWSConfigProfileName}'
 deploymentServiceSession = boto3.session.Session(profile_name=deploymentAccountConfig['localAWSProfileName'])
-setAccessControl(deploymentServiceSession, deploymentServiceTrustEntityPrincipal)
+iamClient = deploymentServiceSession.client('iam')
+
+try:
+    response = iamClient.create_user(UserName=deploymentServiceAccountName)
+except:
+    print("User already exist or error")
+
+responseAK= iamClient.create_access_key(UserName=deploymentServiceAccountName)
+createDeploymentServerAWSProfile(deploymentServiceAccountName, responseAK['AccessKey']['AccessKeyId'], responseAK['AccessKey']['SecretAccessKey'], localAWSConfigProfileName, deploymentServiceAccountNumber, deploymentServiceTrustEntityPrincipal)
+setAccessControl(deploymentServiceSession, deploymentServiceTrustEntityPrincipalSelf)
 
 #############################################################
 ######## Target Accounts Access Control Configuration #######
@@ -97,7 +170,7 @@ if 'targets' in accounts:
             raise ValueError('Invalid configuration file (json schema)')
 
     targetAccountsConfig = accounts['targets']
-    targetAccountTrustEntityPrincipal = f"arn:aws:iam::{deploymentAccountConfig['accountNumber']}:role/{deploymentServiceRoleName}"
+    targetAccountTrustEntityPrincipal = f"arn:aws:iam::{deploymentServiceAccountNumber}:role/{deploymentServiceRoleName}"
 
     for targetAccountConfig in targetAccountsConfig:
 

@@ -3,7 +3,7 @@ include {
 }
 
 locals {
-  module_name = "security_groups"
+  module_name = "security-groups"
   region          = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-2])")
   deployment_name = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-3])")
   all_deployments = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))

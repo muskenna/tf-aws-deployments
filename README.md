@@ -32,11 +32,23 @@ This repo contain examples on how to deploy Terraform modules using Terragrunt
         }
         ```
 
-5 - IAM role configuration<br>
-    All accounts must have a role configured to allow the deployment account to deploy resources.
-    To create a role in all accounts you can use the script /utilities/setDeploymentServiceAccessControl.py. Before executing this script you must update the file /utilities/accounts.json with your own information.<br>
-    The script will create a role with AdminAccess permission and the following trust relationship confguration:<br>
+5 - Create a deployment service user and deployment IAM roles<br>
 
+To deploy resources to AWS, Terraform must assume the IAM role from each account using the deployment service user.
+To create those IAM resource you can execute the script /utilities/setDeploymentServiceAccessControl.py, but first you must have:
+
+- One profile per account, that has permission to create IAM roles, configured in the file **..\.aws\credentials**. These accounts will be used only one for initial setup. Here is an example:
+```
+[power-user-deployment-account]
+aws_access_key_id = ...
+aws_secret_access_key = ...
+[power-user-development-account]
+aws_access_key_id = ...
+aws_secret_access_key = ...
+```
+- the file /utilities/accounts.json updated with your own information.<br>
+
+Here is how the trust relationship is configured by the script
 ```
 {
     "Version": "2012-10-17",
@@ -52,6 +64,9 @@ This repo contain examples on how to deploy Terraform modules using Terragrunt
     ]
 }
 ```
+6 - Configure the deployment service  (IAM user) to assume the deployment role (IAM role)
+AWS Local profile configuration
+https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-role.html#cli-role-overview
 
 ## How to deploy
 
