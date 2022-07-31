@@ -1,9 +1,13 @@
 locals {
   authorized_account               = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
-  aws_local_profile                = "MyDeploymentService"
-  tf_state_bucket                  = "terraform-deployment-state-files-215476549484"
-  tf_state_region                  = "us-east-1"
-  deployment_service_iam_role_name = "MyDeploymentService"
+  #deployment_service_account_id               = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
+  deployment_configuration          = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))
+  deployment_service_account_id       = local.deployment_configuration["deploymentService"]["account_id"]
+  deployment_service_iam_role_name = local.deployment_configuration["deploymentService"]["AWSProfileName"]
+  aws_local_profile                = local.deployment_configuration["deploymentService"]["AWSProfileName"]
+  tf_state_region                  = local.deployment_configuration["deploymentService"]["terraformStateRegion"]
+  tf_state_bucket                  = "terraform-deployment-state-files-${local.deployment_service_account_id}"
+
 
   domain_names = {
     private = {
@@ -130,6 +134,5 @@ variable "common_iam_instance_policies" {
   type        = map
   description = "List of IAM Policies for all IAM Instance Roles"
 }
-
 EOF
 }

@@ -1,19 +1,19 @@
 include {
   path = find_in_parent_folders("global.hcl")
+  expose = true
 }
 
 locals {
-  module_name = "vpc-core"
+  module_name     = "vpc-core"
   region          = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-2])")
   deployment_name = run_cmd("python", "-c", "import os,sys;np=os.path.normpath(os.getcwd());sys.stdout.write(np.split(os.sep)[-3])")
-  all_deployments = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))
-  git_source      = local.all_deployments["git_source"]
-  local_dev_env   = local.all_deployments["local_dev_env"]
-  deployment      = local.all_deployments["deployments"][local.deployment_name]["regions"][local.region]
+  git_source      = include.locals.deployment_configuration["git_source"]
+  local_dev_env   = include.locals.deployment_configuration["local_dev_env"]
+  deployment      = include.locals.deployment_configuration["deployments"][local.deployment_name]["regions"][local.region]
 }
 
 terraform {
-  source =  local.local_dev_env == "true" ? format("%s/tf-aws-library//${local.module_name}", "${get_parent_terragrunt_dir()}") : "${local.git_source}//${local.module_name}"
+  source = local.local_dev_env ? format("%s/tf-aws-library//${local.module_name}", "${get_parent_terragrunt_dir()}") : "${local.git_source}//${local.module_name}"
 }
 
 inputs = {

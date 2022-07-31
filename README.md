@@ -28,7 +28,7 @@ This repo contain examples on how to deploy Terraform modules using Terragrunt
         It is necessary because the terragrunt file terragrunt.hcl will make a decision if it will use a local or remote source. <br>Here is how it works:<br>
         ```
         terraform {
-            source =  local.local_dev_env == "true" ? format("%s/tf-aws-library//${local.module_name}", "${get_parent_terragrunt_dir()}") : "${local.git_source}//${local.module_name}"
+            source =  local.local_dev_env ? format("%s/tf-aws-library//${local.module_name}", "${get_parent_terragrunt_dir()}") : "${local.git_source}//${local.module_name}"
         }
         ```
 
@@ -84,8 +84,6 @@ Using a plan files<br>
 * --terragrunt-non-interactive
 * --terragrunt-source-update
 * --terragrunt-include-dir
-
-
- 
+* --terragrunt-debug --terragrunt-log-level debug
 
 Source: https://terragrunt.gruntwork.io/docs/reference/cli-options/

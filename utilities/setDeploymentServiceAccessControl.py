@@ -1,4 +1,5 @@
 import logging
+from msilib.schema import Error
 import boto3
 import json
 import os 
@@ -41,6 +42,9 @@ def setAccessControl(session, trustEntityPrincipal):
         logging.info(f'The role {deploymentServiceRoleName} already exists')
     except Exception as error:
         raise error
+    # 
+    # Exception has occurred: MalformedPolicyDocumentException
+    # An error occurred (MalformedPolicyDocument) when calling the CreateRole operation: Invalid principal in policy: "AWS":"arn:aws:iam::085167882865:user/cloud_user"
 
     response = {}
     try:
@@ -61,17 +65,17 @@ def setAccessControl(session, trustEntityPrincipal):
         raise error
 
 def getAWSCredeFilePath():
-    awsCredFile = ''
+    awsConfFile = ''
     userHomeFolder = os.path.expanduser('~')
     if os.name == 'nt':
-        awsCredFile = os.path.join(userHomeFolder, '.aws\credentials')
+        awsConfFile = os.path.join(userHomeFolder, '.aws\config')
     else:
-        awsCredFile = os.path.join(userHomeFolder, '.aws/credentials')
+        awsCredFile = os.path.join(userHomeFolder, '.aws/config')
 
-    if not os.path.exists(awsCredFile):
-        awsCredFile = ''
+    if not os.path.exists(awsConfFile):
+        awsConfFile = ''
     
-    return awsCredFile, awsCredFile.replace('credentials', 'config')
+    return awsConfFile
 
 def getAccountsFilePath():
     folder = os.path.dirname(os.path.realpath(__file__))
@@ -91,28 +95,19 @@ def checkRequirements():
         print(f'The accounts file {accountsFile} was not found. Please, create it based on the template accounts.template.json')
         sys.exit(0)
     
-def createDeploymentServerAWSProfile(deploymentServiceAccountName, accessKey, secretKey, localAWSConfigProfileName, deploymentServiceAccountNumber, roleArn):
+def createDeploymentServerAWSProfile(deploymentServiceAccountName, roleName, deploymentServiceAccountNumber):
     '''
     https://docs.python.org/3.5/library/sys.html#sys.platform
     '''
-    awsCredFile, awsConfFile = getAWSCredeFilePath()
-    parser = ConfigParser()
-    parser.read(awsCredFile)
-    section = [sectionName for sectionName in parser.sections() if sectionName == deploymentServiceAccountName]
-    if not section:
-        parser.add_section(deploymentServiceAccountName)
-    parser.set(deploymentServiceAccountName, 'aws_access_key_id', accessKey)
-    parser.set(deploymentServiceAccountName, 'aws_secret_access_key', secretKey)
-    with open(awsCredFile, 'w') as file:    # save
-        parser.write(file)
+    awsConfFile = getAWSCredeFilePath()
 
-    configProfileName = f"profile {localAWSConfigProfileName}"
+    configProfileName = f"profile {roleName}"
     parser = ConfigParser()
     parser.read(awsConfFile)
     section = [sectionName for sectionName in parser.sections() if sectionName == configProfileName]
     if not section:
         parser.add_section(configProfileName)
-    parser.set(configProfileName, 'role_arn', roleArn)
+    parser.set(configProfileName, 'role_arn', f'arn:aws:iam::{deploymentServiceAccountNumber}:role/{roleName}')
     parser.set(configProfileName, 'source_profile', deploymentServiceAccountName)
     with open(awsConfFile, 'w') as file:    # save
         parser.write(file)    
@@ -122,54 +117,53 @@ configFile = getAccountsFilePath()
 
 try:
     with open(configFile, 'r') as reader:
-        accounts = json.loads(reader.read())
+        deploymentConfiguration = json.loads(reader.read())
 except IOError:
         raise IOError('IO operation failed')
 except json.JSONDecodeError:
     raise json.JSONDecodeError('Invalid Json file')
 
-if 'deploymentService' not in accounts and 'targets' not in accounts:
+if 'deploymentService' not in deploymentConfiguration and 'targets' not in deploymentConfiguration:
     raise ValueError('Invalid configuration file (json schema)')
 
-deploymentServiceConfigProperties = list((accounts['deploymentService']).keys())
-if not ('accountAlias' in deploymentServiceConfigProperties and 'accountNumber' in deploymentServiceConfigProperties and 'localAWSProfileName' in deploymentServiceConfigProperties):
+deploymentServiceConfigPropertyNames = list((deploymentConfiguration['deploymentService']).keys())
+if not ('roleName' in deploymentServiceConfigPropertyNames and 'localAWSCredentialsProfileName' in deploymentServiceConfigPropertyNames):
     raise ValueError('Invalid configuration file (json schema)')
 
 #############################################################
 ###### Deployment Service Access Control Configuration ######
 #############################################################
 
-deploymentAccountConfig = accounts['deploymentService']
-deploymentServiceAccountName = accounts['deploymentService']['deploymentServiceAccountName']
-localAWSConfigProfileName = accounts['deploymentService']['localAWSConfigProfileName']
-deploymentServiceAccountNumber = deploymentAccountConfig['accountNumber']
-#deploymentServiceTrustEntityPrincipal = f"arn:aws:iam::{deploymentServiceAccountNumber}:root"
-deploymentServiceTrustEntityPrincipalSelf = f'arn:aws:iam::{deploymentServiceAccountNumber}:user/{deploymentServiceAccountName}'
-deploymentServiceTrustEntityPrincipal = f'arn:aws:iam::{deploymentServiceAccountNumber}:role/{localAWSConfigProfileName}'
-deploymentServiceSession = boto3.session.Session(profile_name=deploymentAccountConfig['localAWSProfileName'])
+deploymentServiceConfiguration = deploymentConfiguration['deploymentService']
+localAWSCredentialsProfileName = deploymentServiceConfiguration['localAWSCredentialsProfileName']
+roleName = deploymentServiceConfiguration['roleName']
+
+deploymentServiceSession = boto3.session.Session(profile_name=localAWSCredentialsProfileName)
 iamClient = deploymentServiceSession.client('iam')
+identity = deploymentServiceSession.client('sts').get_caller_identity()
+identityArn = identity["Arn"]
+deploymentServiceAccountName = identityArn.split('/')[-1]
+deploymentServiceAccountNumber = identity["Account"]
+deploymentServiceTrustEntityPrincipalUser = f'arn:aws:iam::{deploymentServiceAccountNumber}:user/{deploymentServiceAccountName}'
 
-try:
-    response = iamClient.create_user(UserName=deploymentServiceAccountName)
-except:
-    print("User already exist or error")
-
-responseAK= iamClient.create_access_key(UserName=deploymentServiceAccountName)
-createDeploymentServerAWSProfile(deploymentServiceAccountName, responseAK['AccessKey']['AccessKeyId'], responseAK['AccessKey']['SecretAccessKey'], localAWSConfigProfileName, deploymentServiceAccountNumber, deploymentServiceTrustEntityPrincipal)
-setAccessControl(deploymentServiceSession, deploymentServiceTrustEntityPrincipalSelf)
+#responseAK= iamClient.create_access_key(UserName=deploymentServiceAccountName)
+# accessKeyId = responseAK['AccessKey']['AccessKeyId']
+# secretAccessKey = responseAK['AccessKey']['SecretAccessKey']
+createDeploymentServerAWSProfile(localAWSCredentialsProfileName, roleName, deploymentServiceAccountNumber)
+setAccessControl(deploymentServiceSession, deploymentServiceTrustEntityPrincipalUser)
 
 #############################################################
 ######## Target Accounts Access Control Configuration #######
 #############################################################
 
-if 'targets' in accounts:
-    
-    for targetAccountConfig in accounts['targets']:
+if 'targets' in deploymentConfiguration:
+    targets = deploymentConfiguration['targets']
+    for targetAccountConfig in targets:
         targetAccountConfigProperties = list(targetAccountConfig.keys())
-        if not ('accountAlias' in targetAccountConfigProperties and 'accountNumber' in targetAccountConfigProperties and 'localAWSProfileName' in targetAccountConfigProperties):
+        if not ('accountNumber' in targetAccountConfigProperties and 'localAWSProfileName' in targetAccountConfigProperties):
             raise ValueError('Invalid configuration file (json schema)')
 
-    targetAccountsConfig = accounts['targets']
+    targetAccountsConfig = targets
     targetAccountTrustEntityPrincipal = f"arn:aws:iam::{deploymentServiceAccountNumber}:role/{deploymentServiceRoleName}"
 
     for targetAccountConfig in targetAccountsConfig:
