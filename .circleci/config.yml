@@ -28,8 +28,6 @@ commands:
           command: |
             aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile <<parameters.profile-name>>
             aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile <<parameters.profile-name>>
-            ls -l ~/.aws/config
-            cat ~/.aws/config
     
   create-service-roles:
     steps:    
@@ -39,9 +37,6 @@ commands:
             python3 --version
             pip install -r utilities/requirements.txt
             chmod +x utilities/setDeploymentServiceAccessControl.py
-            ls -l ~/.aws/config
-            cat ~/.aws/config
-            aws --version          
             python3 utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
