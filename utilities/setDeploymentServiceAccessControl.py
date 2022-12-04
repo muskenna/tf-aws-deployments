@@ -138,7 +138,7 @@ deploymentServiceConfiguration = deploymentConfiguration['deploymentService']
 localAWSCredentialsProfileName = deploymentServiceConfiguration['localAWSCredentialsProfileName']
 roleName = deploymentServiceConfiguration['roleName']
 
-print(f'localAWSCredentialsProfileName:{localAWSCredentialsProfileName}')
+localAWSCredentialsProfileName = "cloud_user"
 deploymentServiceSession = boto3.session.Session(profile_name=localAWSCredentialsProfileName)
 iamClient = deploymentServiceSession.client('iam')
 identity = deploymentServiceSession.client('sts').get_caller_identity()
