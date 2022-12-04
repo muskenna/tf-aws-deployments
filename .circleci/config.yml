@@ -34,7 +34,8 @@ commands:
       - run:
           name: Create service roles
           command: |
-            utilities/setDeploymentServiceAccessControl.py
+            python3 --version
+            #utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
     docker:
