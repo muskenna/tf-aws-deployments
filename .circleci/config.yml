@@ -11,7 +11,7 @@ commands:
       - run:
           name: Install terraform
           command: |
-            curl https://releases.hashicorp.com/terraform/<<parameters.version>>/terraform_$<<parameters.version>>_linux_amd64.zip \
+            curl https://releases.hashicorp.com/terraform/<<parameters.version>>/terraform_<<parameters.version>>_linux_amd64.zip \
                 --output terraform.zip --no-progress-meter
             ls -l
             unzip terraform.zip
