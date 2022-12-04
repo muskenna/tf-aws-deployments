@@ -1,5 +1,4 @@
 import logging
-#from msilib.schema import Error
 import boto3
 import json
 import os 
