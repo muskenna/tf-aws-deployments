@@ -1,8 +1,8 @@
 locals {
-  authorized_account               = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
+  authorized_account = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
   #deployment_service_account_id               = run_cmd("python", "-c", "import os,sys; os.chdir('${get_parent_terragrunt_dir()}');from utilities.helpers import getAWSAuthorizedAccountIds;getAWSAuthorizedAccountIds()")
-  deployment_configuration          = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))
-  deployment_service_account_id       = local.deployment_configuration["deploymentService"]["account_id"]
+  deployment_configuration         = jsondecode(file("${get_parent_terragrunt_dir()}/deployments.json"))
+  deployment_service_account_id    = local.deployment_configuration["deploymentService"]["account_id"]
   deployment_service_iam_role_name = local.deployment_configuration["deploymentService"]["AWSProfileName"]
   aws_local_profile                = local.deployment_configuration["deploymentService"]["AWSProfileName"]
   tf_state_region                  = local.deployment_configuration["deploymentService"]["terraformStateRegion"]

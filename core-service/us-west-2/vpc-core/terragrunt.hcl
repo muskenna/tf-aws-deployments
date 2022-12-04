@@ -1,5 +1,5 @@
 include {
-  path = find_in_parent_folders("global.hcl")
+  path   = find_in_parent_folders("global.hcl")
   expose = true
 }
 

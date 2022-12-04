@@ -1,6 +1,6 @@
 include {
-  path = find_in_parent_folders("global.hcl")
-  expose = true  
+  path   = find_in_parent_folders("global.hcl")
+  expose = true
 }
 
 locals {
@@ -46,11 +46,11 @@ inputs = {
   region                          = local.region
   account_id                      = local.deployment.account_id
   cluster_name                    = "Cluster-01"
-  cluster_version                 = "1.22"
-  cluster_endpoint_private_access = false
+  kube_version                    = "1.22"
+  cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
   cluster_service_ipv4_cidr       = "10.100.0.0/16"
-  eks_secgrp_name                 = "eks-cluster"
+  cluster_security_group_name     = "eks-cluster"
   vpc_core_outputs                = dependency.vpc_core.outputs
   security_groups_outputs         = dependency.security_groups.outputs
   deployment_tags = {
