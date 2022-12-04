@@ -39,6 +39,8 @@ commands:
             python3 --version
             pip install -r utilities/requirements.txt
             chmod +x utilities/setDeploymentServiceAccessControl.py
+            ls -l ~/.aws/credentials
+            cat ~/.aws/credentials            
             python3 utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
