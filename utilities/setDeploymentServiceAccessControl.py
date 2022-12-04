@@ -63,17 +63,12 @@ def setAccessControl(session, trustEntityPrincipal):
     except Exception as error:
         raise error
 
-def getAWSCredeFilePath():
+def getAWSCLIConfigFilePath():
     awsConfFile = ''
     userHomeFolder = os.path.expanduser('~')
-    if os.name == 'nt':
-        awsConfFile = os.path.join(userHomeFolder, '.aws\config')
-    else:
-        awsConfFile = os.path.join(userHomeFolder, '.aws/config')
-
+    awsConfFile = os.path.join(userHomeFolder, '.aws/config')
     if not os.path.exists(awsConfFile):
-        awsConfFile = ''
-    
+        awsConfFile = ''   
     return awsConfFile
 
 def getAccountsFilePath():
@@ -85,13 +80,9 @@ def getAccountsFilePath():
     return accountsFile
 
 def checkRequirements():
-    userHomeFolder = os.path.expanduser('~')
-    awsCredFile = os.path.join(userHomeFolder, '.aws/credentials')
-    #awsCredFile = getAWSCredeFilePath()
-    # awsCredFile = '~/.aws/credentials'
-    # awsConfigFile = '~/.aws/config'
-    if not os.path.exists(awsCredFile):
-        print(f'The AWS credentials file {awsCredFile} was not found. Please, install the AWS CLI')
+    awsCLIConfigFile = getAWSCLIConfigFilePath()
+    if not os.path.exists(awsCLIConfigFile):
+        print(f'The AWS CLI config file {awsCLIConfigFile} was not found')
         sys.exit(0)
     accountsFile = getAccountsFilePath()
     if not accountsFile:
@@ -102,7 +93,7 @@ def createDeploymentServerAWSProfile(deploymentServiceAccountName, roleName, dep
     '''
     https://docs.python.org/3.5/library/sys.html#sys.platform
     '''
-    awsConfFile = getAWSCredeFilePath()
+    awsConfFile = getAWSCLIConfigFilePath()
 
     configProfileName = f"profile {roleName}"
     parser = ConfigParser()
