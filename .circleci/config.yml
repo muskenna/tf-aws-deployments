@@ -13,8 +13,9 @@ commands:
           command: |
             curl https://releases.hashicorp.com/terraform/<<parameters.version>>/terraform_$<<parameters.version>>_linux_amd64.zip \
                 --output terraform.zip --no-progress-meter
+            ls -l
             unzip terraform.zip
-            $SUDO mv terraform /usr/bin
+            sudo mv terraform /usr/bin
   aws-web-auth:
     parameters:
       profile-name:
@@ -36,7 +37,7 @@ commands:
 jobs:
   test:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:3.11.0
     steps:
       - checkout
       - terraform-install
