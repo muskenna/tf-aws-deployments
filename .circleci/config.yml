@@ -37,7 +37,7 @@ commands:
             python3 --version
             pip install -r utilities/requirements.txt
             chmod +x utilities/setDeploymentServiceAccessControl.py
-            utilities/setDeploymentServiceAccessControl.py
+            python3 utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
     docker:
