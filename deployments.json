@@ -1,0 +1,29 @@
+{
+    "deploymentService": {
+        "__notes__": [
+            "Terraform will be executed from this account",
+            "AWSProfileName is the profile from the file /.aws/config that assumes the IAM role of the deployment service (Check readme for me instructions)"
+        ],
+        "account_id": "097410909212",
+        "AWSProfileName": "MyDeploymentService",
+        "terraformStateRegion": "us-west-2"
+    },
+    "deployments": {
+        "core-service": {
+            "regions": {
+                "us-west-2": {        
+                    "account_id": "097410909212",          
+                    "environment": "core-service",
+                    "prefix": "csrv",
+                    "vpc_cidr_block": "172.16.0.0/16",
+                    "notes": [
+                        "CIDR Block to be divided by four subnets",
+                        "Subnets: private-primary, private-secondary, public-primary, public-secondary"
+                    ]
+                }
+            }
+        }
+    },
+    "git_source":"git::ssh://git@muskenna/muskenna/tf-aws-library.git",
+    "local_dev_env": true
+}

@@ -1,0 +1,7 @@
+{
+  "deploymentService": {
+      "__notes__": "Terraform will be executed from this account",
+      "localAWSCredentialsProfileName": "cloud_user",
+      "roleName": "MyDeploymentService"
+  }
+}

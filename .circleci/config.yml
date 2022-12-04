@@ -47,7 +47,7 @@ jobs:
       - terraform-install
       - aws-cli/install      
       - aws-web-auth:
-          profile-name: MyDeploymentService
+          profile-name: cloud_user
       - create-service-roles
       
 workflows:

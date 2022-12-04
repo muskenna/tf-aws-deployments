@@ -36,8 +36,8 @@ override.tf.json
 utilities/__pycache__/*
 *.terragrunt-cache*
 *.terraform.lock.hcl*
-deployments.json
+#deployments.json
 
 #Local library for testing
 tf-aws-library/*
-utilities/accounts.json
+#utilities/accounts.json
