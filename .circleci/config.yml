@@ -35,6 +35,7 @@ commands:
           name: Create service roles
           command: |
             python3 --version
+            pip install -r requirements.txt
             chmod +x utilities/setDeploymentServiceAccessControl.py
             utilities/setDeploymentServiceAccessControl.py
 jobs:
