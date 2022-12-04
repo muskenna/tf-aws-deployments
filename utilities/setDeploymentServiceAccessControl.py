@@ -85,9 +85,11 @@ def getAccountsFilePath():
     return accountsFile
 
 def checkRequirements():
+    userHomeFolder = os.path.expanduser('~')
+    awsCredFile = os.path.join(userHomeFolder, '.aws/credentials')
     #awsCredFile = getAWSCredeFilePath()
-    awsCredFile = '~/.aws/credentials'
-    awsConfigFile = '~/.aws/config'
+    # awsCredFile = '~/.aws/credentials'
+    # awsConfigFile = '~/.aws/config'
     if not os.path.exists(awsCredFile):
         print(f'The AWS credentials file {awsCredFile} was not found. Please, install the AWS CLI')
         sys.exit(0)
