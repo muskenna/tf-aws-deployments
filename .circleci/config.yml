@@ -39,7 +39,6 @@ commands:
             chmod +x utilities/setDeploymentServiceAccessControl.py
             ls -l ~
             ls -l ~/.aws/credentials
-            ls -l ~/.aws/config
             python3 utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
