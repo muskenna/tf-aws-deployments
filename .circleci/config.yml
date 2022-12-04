@@ -40,7 +40,8 @@ commands:
             pip install -r utilities/requirements.txt
             chmod +x utilities/setDeploymentServiceAccessControl.py
             ls -l ~/.aws/credentials
-            cat ~/.aws/credentials            
+            cat ~/.aws/credentials
+            aws --version          
             python3 utilities/setDeploymentServiceAccessControl.py
 jobs:
   test:
